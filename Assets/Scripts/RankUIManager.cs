@@ -1,69 +1,34 @@
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 public class RankUIManager : MonoBehaviour
 {
-    public GameObject rankDataPrefab;
-    public Transform rankPanel;
+    [SerializeField] private GameObject rankDataPrefab;
+    [SerializeField] private Transform rankPanel;
+    private readonly List<GameObject> createdRankDatas = new();
 
-    public List<PlayerData> playerDatas = new List<PlayerData>();
-    public List<GameObject> createdPlayerDatas = new List<GameObject>();
-
-    private void Start()
+    public void ShowRanking(List<PlayerData> playerDatas)
     {
-        ReloadRankData();
-    }
+        ClearRankData();
 
-    public void CreateRankData()
-    {
-        for (int i = 0; i < playerDatas.Count; i++)
+        foreach (PlayerData playerData in playerDatas)
         {
             GameObject rankObj = Instantiate(rankDataPrefab, rankPanel);
             RankData rankData = rankObj.GetComponent<RankData>();
-            rankData.playerData = new PlayerData(playerDatas[i].rankNumber,
-                playerDatas[i].playerName,
-                playerDatas[i].playerScore,
-                playerDatas[i].profileSprite);
-
-            rankData.UpdateData();
-            createdPlayerDatas.Add(rankObj);
+            rankData.SetData(playerData);
+            createdRankDatas.Add(rankObj);
         }
-    }
-
-    private void SortRankData()
-    {
-        List<PlayerData> sortRankPlayer = new List<PlayerData>();
-        sortRankPlayer = playerDatas.OrderByDescending(
-            data => data.playerScore).ToList();
-
-        for (int i = 0; i < sortRankPlayer.Count; i++)
-        {
-            PlayerData changeRankNum = sortRankPlayer[i];
-            changeRankNum.rankNumber = i + 1;
-
-            sortRankPlayer[i] = changeRankNum;
-        }
-
-        playerDatas = sortRankPlayer;
     }
 
     private void ClearRankData()
     {
-        foreach (GameObject createdData in createdPlayerDatas)
+        foreach (GameObject createdData in createdRankDatas)
         {
             Destroy(createdData);
         }
-        createdPlayerDatas.Clear();
-    }
 
-    [ContextMenu("Reload")]
-    public void ReloadRankData()
-    {
-        ClearRankData();
-        SortRankData();
-        CreateRankData();
+        createdRankDatas.Clear();
     }
 }
